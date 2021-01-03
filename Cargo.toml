@@ -1,0 +1,14 @@
+[package]
+name = "tilr"
+description = "Convert the pixels of one image to be made of a set of smaller images."
+version = "0.1.0"
+authors = ["Charles German <5donuts@protonmail.com>"]
+edition = "2018"
+readme = "./README.md"
+license = "GPL-3.0-or-later"
+homepage = "https://github.com/5donuts/tilr"
+categories = ["multimedia::images"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
