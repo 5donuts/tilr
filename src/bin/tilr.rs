@@ -1,3 +1,4 @@
+use image::io::Reader as ImageReader;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
@@ -29,5 +30,8 @@ struct Opt {
 
 fn main() {
     let opt = Opt::from_args();
-    println!("{:?}", opt);
+
+    todo!("ensure all args are valid");
+    todo!("load the images");
+    todo!("generate & save the image");
 }
