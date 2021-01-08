@@ -1,6 +1,6 @@
 # Tilr
 
-Convert the pixels of one image to be made of a set of smaller images.
+Build a mosaic of a particular image out of a set of smaller images.
 
 Inspired by [tokotchd/PixelPicturePermutator](https://github.com/tokotchd/PixelPicturePermutator).
 
