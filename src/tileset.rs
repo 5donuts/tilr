@@ -30,7 +30,13 @@ impl<'a> TileSet<'a> {
     /// Given a pixel, find the tile in the set that most
     /// closely matches it
     fn closest_tile(&self, px: &Rgb<u8>) -> &Tile<'a> {
-        todo!()
+        let mut min_idx = 0;
+        for (i, t) in self.tiles.iter().enumerate() {
+            if t.dist_to(px) < self.tiles[min_idx].dist_to(px) {
+                min_idx = i;
+            }
+        }
+        &self.tiles[min_idx]
     }
 }
 
@@ -43,6 +49,26 @@ pub struct Tile<'a> {
     img: &'a RgbImage,
     /// The average pixel in the underlying image
     avg: Rgb<u8>,
+}
+
+impl<'a> Tile<'a> {
+    /// Compute the Euclidean distance between the color
+    /// of the given pixel and the average pixel color
+    /// of this tile.
+    pub fn dist_to(&self, px: &Rgb<u8>) -> f32 {
+        // color values for the given px
+        let p_r = px.0[0];
+        let p_g = px.0[1];
+        let p_b = px.0[2];
+
+        // color values for the avg px color of the tile
+        let q_r = self.avg.0[0];
+        let q_g = self.avg.0[1];
+        let q_b = self.avg.0[2];
+
+        // Euclidean distance
+        (((p_r - q_r).pow(2) + (p_g - q_g).pow(2) + (p_b - q_b).pow(2)) as f32).sqrt()
+    }
 }
 
 impl<'a> From<&'a RgbImage> for Tile<'a> {
