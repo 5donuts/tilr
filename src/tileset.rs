@@ -42,10 +42,10 @@ impl<'a> TileSet<'a> {
 
 /// Represents a single tile in a set; used to map
 /// between pixels in the original image and images
-/// in the tile set.
+/// in the TileSet.
 #[derive(Debug)]
 pub struct Tile<'a> {
-    /// The underlying image to use for this tile
+    /// The underlying image to use for this Tile
     img: &'a RgbImage,
     /// The average pixel in the underlying image
     avg: Rgb<u8>,
@@ -54,7 +54,7 @@ pub struct Tile<'a> {
 impl<'a> Tile<'a> {
     /// Compute the Euclidean distance between the color
     /// of the given pixel and the average pixel color
-    /// of this tile.
+    /// of this Tile.
     pub fn dist_to(&self, px: &Rgb<u8>) -> f32 {
         // color values for the given px
         let p_r = px.0[0];
@@ -68,6 +68,11 @@ impl<'a> Tile<'a> {
 
         // Euclidean distance
         (((p_r - q_r).pow(2) + (p_g - q_g).pow(2) + (p_b - q_b).pow(2)) as f32).sqrt()
+    }
+
+    /// Get the underlying image for this Tile
+    pub fn img(&self) -> &RgbImage {
+        &self.img
     }
 }
 
