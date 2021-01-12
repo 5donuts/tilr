@@ -1,5 +1,4 @@
 use image::io::Reader as ImageReader;
-use image::ImageFormat;
 use std::fs;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -28,27 +27,60 @@ struct Opt {
     #[structopt(short, long, default_value = "tiles/", parse(from_os_str))]
     tile_dir: PathBuf,
 
-    /// Path to the output image
-    #[structopt(short, long, default_value = "tiled.png", parse(from_os_str))]
-    output: PathBuf,
+    /// Path at which to save the resulting image
+    #[structopt(short, long, default_value = "mosaic.png", parse(from_os_str))]
+    save_path: PathBuf,
 }
 
 fn main() {
-    // TODO: setup logging (& verbose modes)
-    // TODO: improve error messages (esp for I/O stuff)
-
     // parse command-line args
     let opt = Opt::from_args();
 
-    let tileset = tilr::load_tiles(&opt.tile_dir);
+    // load the image to build a mosaic from
+    let img = ImageReader::open(opt.image).expect("Unable to read image file.");
+    let img = img.decode().expect("Unable to decode image file.");
+    let img = img.as_rgb8().expect("Error reading image as an RGB image.");
 
-    let img = ImageReader::open(opt.image)
-        .expect("Unable to read image file.")
-        .decode()
-        .expect("Unable to decode image file.");
+    // load the images to use as tiles
+    let mut tiles = Vec::new();
+    fs::read_dir(opt.tile_dir)
+        .expect("Error opening tile dir.")
+        .for_each(|entry| {
+            if let Ok(e) = entry {
+                let path = e.path();
+                if !path.is_dir() {
+                    if let Ok(img) = ImageReader::open(&path) {
+                        if let Ok(img) = img.decode() {
+                            tiles.push(img);
+                        } else {
+                            eprintln!(
+                                "Unable to decode image {}",
+                                path.into_os_string().into_string().unwrap()
+                            );
+                        }
+                    } else {
+                        eprintln!(
+                            "Could not open file {}",
+                            path.into_os_string().into_string().unwrap()
+                        );
+                    }
+                } else {
+                    eprintln!(
+                        "Skipping directory entry {}",
+                        path.into_os_string().into_string().unwrap()
+                    );
+                }
+            } else {
+                eprintln!("Error reading dir entry {}", entry.unwrap_err().to_string());
+            }
+        });
 
-    tilr::stitch_mosaic(
-        &img.as_rgb8().expect("Error reading image as an RGB image."),
-        &tileset,
-    );
+    // build the tileset
+    let tileset = tilr::TileSet::from(&tiles);
+
+    // build the mosaic
+    let mosaic = tilr::stitch_mosaic(&img, &tileset);
+
+    // save the image to the path specified
+    mosaic.save(opt.save_path).expect("Error saving mosaic.");
 }
