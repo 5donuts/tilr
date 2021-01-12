@@ -1,22 +1,33 @@
-use image::{Rgb, RgbImage};
+use image::imageops::FilterType;
+use image::{DynamicImage, GenericImageView, Rgb, RgbImage};
 use std::collections::HashMap;
 
 #[derive(Debug)]
-pub struct TileSet<'a> {
-    tiles: Vec<Tile<'a>>,
+pub struct TileSet {
+    tiles: Vec<Tile>,
 }
 
-impl<'a> TileSet<'a> {
-    /// Build a tile set using the given images as tiles
-    pub fn new(tiles: &'a Vec<RgbImage>) -> Self {
-        Self {
-            tiles: tiles.iter().map(|img| Tile::from(img)).collect(),
-        }
+impl TileSet {
+    /// Build a tile set using the given images as tiles.
+    /// The images will be scaled to be squares with a
+    /// side length equal to the smallest dimension among
+    /// the given images.
+    /// NB: Aspect ratio will _not_ be preserved when the
+    /// images are resized. Images are scaled using a
+    /// triangular linear sampling filter.
+    pub fn new(tiles: &Vec<DynamicImage>) -> Self {
+        Self::from(tiles)
+    }
+
+    /// Get the side length of the tiles (which are square)
+    /// in this set.
+    pub fn tile_side_len(&self) -> u32 {
+        self.tiles[0].side_len()
     }
 
     /// Create a mapping between pixels in the given image
     /// and tiles in the set
-    pub fn map_to(&self, img: &'a RgbImage) -> HashMap<&Rgb<u8>, &Tile<'a>> {
+    pub fn map_to<'a>(&self, img: &'a RgbImage) -> HashMap<&'a Rgb<u8>, &Tile> {
         let mut map = HashMap::new();
         for px in img.pixels() {
             // TODO: see about skipping pixels that already have a
@@ -29,7 +40,7 @@ impl<'a> TileSet<'a> {
 
     /// Given a pixel, find the tile in the set that most
     /// closely matches it
-    fn closest_tile(&self, px: &Rgb<u8>) -> &Tile<'a> {
+    fn closest_tile(&self, px: &Rgb<u8>) -> &Tile {
         let mut min_idx = 0;
         for (i, t) in self.tiles.iter().enumerate() {
             if t.dist_to(px) < self.tiles[min_idx].dist_to(px) {
@@ -40,18 +51,49 @@ impl<'a> TileSet<'a> {
     }
 }
 
+impl From<&Vec<DynamicImage>> for TileSet {
+    // TODO: look into reducing the memory footprint of this fn
+    fn from(imgs: &Vec<DynamicImage>) -> Self {
+        // get the smallest dimension of any of the images
+        // for the side length of the resulting image tiles
+        let s = imgs
+            .iter()
+            .map(|img| {
+                let (w, h) = img.dimensions();
+                if w < h {
+                    w
+                } else {
+                    h
+                }
+            })
+            .min()
+            .unwrap();
+
+        // scale all of the images to be squares with that side length
+        let imgs: Vec<RgbImage> = imgs
+            .iter()
+            .map(|img| img.resize_exact(s, s, FilterType::Triangle).to_rgb8())
+            .collect();
+
+        // build tiles from the resulting images
+        Self {
+            tiles: imgs.iter().map(|img| Tile::from(img.clone())).collect(),
+        }
+    }
+}
+
 /// Represents a single tile in a set; used to map
 /// between pixels in the original image and images
 /// in the TileSet.
 #[derive(Debug)]
-pub struct Tile<'a> {
+pub struct Tile {
     /// The underlying image to use for this Tile
-    img: &'a RgbImage,
+    img: RgbImage,
     /// The average pixel in the underlying image
     avg: Rgb<u8>,
 }
 
-impl<'a> Tile<'a> {
+impl Tile {
     /// Compute the Euclidean distance between the color
     /// of the given pixel and the average pixel color
     /// of this Tile.
@@ -74,10 +116,15 @@ impl<'a> Tile<'a> {
     pub fn img(&self) -> &RgbImage {
         &self.img
     }
+
+    /// Get the side length of this Tile
+    pub fn side_len(&self) -> u32 {
+        self.img.dimensions().0
+    }
 }
 
-impl<'a> From<&'a RgbImage> for Tile<'a> {
-    fn from(img: &'a RgbImage) -> Self {
+impl From<RgbImage> for Tile {
+    fn from(img: RgbImage) -> Self {
         let avg_px_color = {
             // get total for each color in the image
             let mut tot_r = 0;
