@@ -1,6 +1,6 @@
 [package]
 name = "tilr"
-description = "Build a mosaic of a particular image out of a set of smaller images."
+description = "Build a mosaic of a particular image out of a set of smaller image 'tiles'."
 version = "0.1.0"
 authors = ["Charles German <5donuts@protonmail.com>"]
 edition = "2018"

@@ -12,10 +12,6 @@ use structopt::StructOpt;
     about = env!("CARGO_PKG_DESCRIPTION")
 )]
 struct Opt {
-    /// Enable verbose logging
-    #[structopt(short, long)]
-    verbose: bool,
-
     /// Path to the original image
     #[structopt(name = "IMAGE", parse(from_os_str))]
     pub image: PathBuf,
@@ -30,6 +26,9 @@ struct Opt {
     /// Path at which to save the resulting image
     #[structopt(short, long, default_value = "mosaic.png", parse(from_os_str))]
     save_path: PathBuf,
+    // /// Enable verbose logging
+    // #[structopt(short, long)]
+    // verbose: bool,
 }
 
 fn main() {
@@ -39,7 +38,7 @@ fn main() {
     // load the image to build a mosaic from
     let img = ImageReader::open(opt.image).expect("Unable to read image file.");
     let img = img.decode().expect("Unable to decode image file.");
-    let img = img.as_rgb8().expect("Error reading image as an RGB image.");
+    let img = img.into_rgb8(); // why does `.as_rgb8()` return `None` here?
 
     // load the images to use as tiles
     let mut tiles = Vec::new();
@@ -79,8 +78,16 @@ fn main() {
     let tileset = tilr::TileSet::from(&tiles);
 
     // build the mosaic
-    let mosaic = tilr::stitch_mosaic(&img, &tileset);
+    let mosaic = tilr::make_mosaic(&img, &tileset);
 
     // save the image to the path specified
+    eprintln!(
+        "Saving image to {}...",
+        opt.save_path
+            .clone()
+            .into_os_string()
+            .into_string()
+            .unwrap()
+    );
     mosaic.save(opt.save_path).expect("Error saving mosaic.");
 }
