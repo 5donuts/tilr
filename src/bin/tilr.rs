@@ -1,4 +1,4 @@
-use image::io::Reader as ImageReader;
+use image::{io::Reader as ImageReader, DynamicImage};
 use std::fs;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -12,23 +12,28 @@ use structopt::StructOpt;
     about = env!("CARGO_PKG_DESCRIPTION")
 )]
 struct Opt {
-    /// Path to the original image
+    /// Path to the original image.
     #[structopt(name = "IMAGE", parse(from_os_str))]
     pub image: PathBuf,
 
     /// Path to the directory containing the tile set. Each image in this
     /// directory should be squares of the same size for optimal results.
-    /// Otherwise, all the images will be scaled to squares with side length
-    /// equal to the shortest side length of any image in the directory.
     #[structopt(short, long, default_value = "tiles/", parse(from_os_str))]
     tile_dir: PathBuf,
 
-    /// Path at which to save the resulting image
+    /// Path at which to save the resulting image.
     #[structopt(short, long, default_value = "mosaic.png", parse(from_os_str))]
-    save_path: PathBuf,
-    // /// Enable verbose logging
-    // #[structopt(short, long)]
-    // verbose: bool,
+    output: PathBuf,
+
+    /// Scaling to apply to the image before building the mosaic.
+    #[structopt(short, long, default_value = "1.0")]
+    scale: f32,
+
+    /// The side length to use for the tiles (in pixels). Any tiles which
+    /// are not squares with this side length will be resized, which may
+    /// introduce some distortion in the resulting mosaic.
+    #[structopt(long, default_value = "8")]
+    tile_size: u8,
 }
 
 fn main() {
@@ -41,6 +46,7 @@ fn main() {
     let img = img.into_rgb8(); // why does `.as_rgb8()` return `None` here?
 
     // load the images to use as tiles
+    // TODO: replace these "unwrap"s
     let mut tiles = Vec::new();
     fs::read_dir(opt.tile_dir)
         .expect("Error opening tile dir.")
@@ -74,20 +80,19 @@ fn main() {
             }
         });
 
-    // build the tileset
-    let tileset = tilr::TileSet::from(&tiles);
-
     // build the mosaic
-    let mosaic = tilr::make_mosaic(&img, &tileset);
+    let mosaic = tilr::Mosaic::new(
+        DynamicImage::ImageRgb8(img),
+        &tiles,
+        opt.scale,
+        opt.tile_size,
+    )
+    .generate();
 
     // save the image to the path specified
     eprintln!(
         "Saving image to {}...",
-        opt.save_path
-            .clone()
-            .into_os_string()
-            .into_string()
-            .unwrap()
+        opt.output.clone().into_os_string().into_string().unwrap()
     );
-    mosaic.save(opt.save_path).expect("Error saving mosaic.");
+    mosaic.save(opt.output).expect("Error saving mosaic.");
 }
