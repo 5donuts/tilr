@@ -4,10 +4,10 @@ use std::collections::HashMap;
 
 use super::Tile;
 
-/// A set of [`Tile`]s to use to build a [`Mosaic`].
+/// A set of [`Tile`]s to use to build a [`Mosaic`](crate::Mosaic).
 ///
 /// This struct provides methods to map between the pixels in the original
-/// image to [`Tile`]s in order to build a [`Mosaic`].
+/// image to [`Tile`]s in order to build a [`Mosaic`](crate::Mosaic).
 #[derive(Debug)]
 pub struct TileSet {
     /// The [`Tile`]s in this set.
