@@ -13,7 +13,7 @@ use structopt::StructOpt;
 )]
 struct Opt {
     /// Path to the original image.
-    #[structopt(name = "IMAGE", parse(from_os_str))]
+    #[structopt(name = "SRC_IMAGE", parse(from_os_str))]
     pub image: PathBuf,
 
     /// Path to the directory containing the tile set. Each image in this
@@ -30,7 +30,7 @@ struct Opt {
     scale: f32,
 
     /// The side length to use for the tiles (in pixels). Any tiles which
-    /// are not squares with this side length will be resized, which may
+    /// are not squares with this side length will be resized; this may
     /// introduce some distortion in the resulting mosaic.
     #[structopt(long, default_value = "8")]
     tile_size: u8,
@@ -87,7 +87,7 @@ fn main() {
         opt.scale,
         opt.tile_size,
     )
-    .generate();
+    .to_image();
 
     // save the image to the path specified
     eprintln!(
