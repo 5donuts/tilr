@@ -4,31 +4,25 @@ use std::collections::HashMap;
 
 use super::Tile;
 
+/// A set of [`Tile`]s to use to build a [`Mosaic`].
+///
+/// This struct provides methods to map between the pixels in the original
+/// image to [`Tile`]s in order to build a [`Mosaic`].
 #[derive(Debug)]
 pub struct TileSet {
+    /// The [`Tile`]s in this set.
     tiles: Vec<Tile>,
 }
 
 impl TileSet {
-    /// Build a tile set using the given images as tiles.
-    /// The images will be scaled to be squares with a
-    /// side length equal to the smallest dimension among
-    /// the given images.
-    /// NB: Aspect ratio will _not_ be preserved when the
-    /// images are resized. Images are scaled using a
-    /// triangular linear sampling filter.
-    pub fn new(tiles: &Vec<DynamicImage>) -> Self {
-        Self::from(tiles)
-    }
-
-    /// Get the side length of the tiles (which are square)
+    /// Get the side length of the [`Tile`]s (which are uniform squares)
     /// in this set.
     pub fn tile_side_len(&self) -> u32 {
         self.tiles[0].side_len()
     }
 
     /// Create a mapping between pixels in the given image
-    /// and tiles in the set
+    /// and [`Tile`]s in the set.
     pub fn map_to<'a>(&self, img: &'a RgbImage) -> HashMap<&'a Rgb<u8>, &Tile> {
         let mut map = HashMap::new();
         for px in img.pixels() {
@@ -41,7 +35,7 @@ impl TileSet {
         map
     }
 
-    /// Scale the tiles in this tileset to a new side length
+    /// Scale the [`Tile`]s in this tileset to a new side length.
     pub fn scale_tiles(&mut self, s: u32) {
         self.tiles = self
             .tiles
@@ -53,8 +47,8 @@ impl TileSet {
             .collect();
     }
 
-    /// Given a pixel, find the tile in the set that most
-    /// closely matches it
+    /// Given a pixel, find the [`Tile`] in the set that most
+    /// closely matches it.
     fn closest_tile(&self, px: &Rgb<u8>) -> &Tile {
         let mut min_idx = 0;
         for (i, t) in self.tiles.iter().enumerate() {
@@ -67,6 +61,15 @@ impl TileSet {
 }
 
 impl From<&Vec<DynamicImage>> for TileSet {
+    /// Build a tile set using the given images as [`Tile`]s.
+    ///
+    /// The images will be scaled to be squares with a
+    /// side length equal to the smallest dimension among
+    /// the given images.
+    ///
+    /// NB: Aspect ratio will _not_ be preserved when the
+    /// images are resized. Images are scaled using a
+    /// triangular linear sampling filter.
     // TODO: look into reducing the memory footprint of this fn
     fn from(imgs: &Vec<DynamicImage>) -> Self {
         // get the smallest dimension of any of the images
