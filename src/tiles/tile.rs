@@ -2,12 +2,17 @@ use image::{Rgb, RgbImage};
 
 /// Represents a single tile in a set; used to map
 /// between pixels in the original image and images
-/// in the TileSet.
+/// in the [`TileSet`](super::TileSet).
 #[derive(Debug)]
 pub struct Tile {
-    /// The underlying image to use for this Tile
+    /// The underlying image to use for this Tile.
     img: RgbImage,
-    /// The average pixel in the underlying image
+    /// The average pixel in the underlying image.
+    ///
+    /// This is computed only once when the tile is
+    /// first created to handle the case of very large
+    /// images being used as tiles and making the mapping
+    /// between image pixels and Tiles very slow.
     avg: Rgb<u8>,
 }
 
@@ -30,18 +35,19 @@ impl Tile {
         (((p_r - q_r).pow(2) + (p_g - q_g).pow(2) + (p_b - q_b).pow(2)) as f32).sqrt()
     }
 
-    /// Get the underlying image for this Tile
+    /// Get the underlying image for this Tile.
     pub fn img(&self) -> &RgbImage {
         &self.img
     }
 
-    /// Get the side length of this Tile
+    /// Get the side length of this Tile.
     pub fn side_len(&self) -> u32 {
         self.img.dimensions().0
     }
 }
 
 impl From<RgbImage> for Tile {
+    /// Build a [`Tile`] from an [`RgbImage`].
     fn from(img: RgbImage) -> Self {
         let avg_px_color = {
             // get total for each color in the image
