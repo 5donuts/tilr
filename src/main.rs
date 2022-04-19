@@ -68,12 +68,15 @@ fn main() {
     let opt = Opt::from_args();
 
     // load the image to build a mosaic from
+    eprint!("Loading input image...");
     let img = ImageReader::open(opt.image).expect("Unable to read image file.");
     let img = img.decode().expect("Unable to decode image file.");
     let img = img.into_rgb8(); // why does `.as_rgb8()` return `None` here?
+    eprintln!("done.");
 
     // load the images to use as tiles
     // TODO: replace these "unwrap"s
+    eprint!("Loading tiles...");
     let mut tiles = Vec::new();
     fs::read_dir(opt.tile_dir)
         .expect("Error opening tile dir.")
@@ -106,14 +109,17 @@ fn main() {
                 eprintln!("Error reading dir entry {}", entry.unwrap_err().to_string());
             }
         });
+    eprintln!("done.");
 
     // build the mosaic
+    eprint!("Initializing mosaic canvas...");
     let mosaic = Mosaic::new(
         DynamicImage::ImageRgb8(img),
         &tiles,
         opt.scale,
         opt.tile_size,
     );
+    eprintln!("done.");
 
     // get user confirmation to proceed (so we don't start making hilariously huge images
     // w/o asking first).
@@ -265,9 +271,16 @@ impl Mosaic {
         for x in 0..img_x {
             let mut mos_y = 0;
             for y in 0..img_y {
-                eprintln!(
-                    "Adding tile for img px ({}, {}) to mosaic at ({}, {})...",
-                    x, y, mos_x, mos_y
+                // print some information about the current source image pixel we're processing
+                let cur_px = y + (x * img_y) + 1;
+                eprint!(
+                    "\rProcessing source px {:04}/{:04}: src loc ({:03}, {:03}) -- dst loc ({:04}, {:04})...          ",
+                    cur_px,
+                    img_x * img_y,
+                    x,
+                    y,
+                    mos_x,
+                    mos_y
                 );
 
                 // Add the tile to the mosaic
@@ -281,6 +294,8 @@ impl Mosaic {
             // Move to the next row in the mosaic
             mos_x += tile_size;
         }
+
+        eprintln!(); // so we don't have to add a newline later...
 
         mosaic.0.into_rgb8()
     }
