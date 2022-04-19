@@ -26,6 +26,7 @@ use image::imageops::FilterType;
 use image::io::Reader as ImageReader;
 use image::{DynamicImage, GenericImage, GenericImageView, Pixel, Rgb, RgbImage};
 use std::collections::HashMap;
+use std::io::{stdin, stdout, Write};
 use std::{fs, path::PathBuf};
 use structopt::StructOpt;
 
@@ -112,15 +113,42 @@ fn main() {
         &tiles,
         opt.scale,
         opt.tile_size,
-    )
-    .to_image();
-
-    // save the image to the path specified
-    eprintln!(
-        "Saving image to {}...",
-        opt.output.clone().into_os_string().into_string().unwrap()
     );
-    mosaic.save(opt.output).expect("Error saving mosaic.");
+
+    // get user confirmation to proceed (so we don't start making hilariously huge images
+    // w/o asking first).
+    let mut s = String::new();
+    let (mos_x, mos_y) = mosaic.output_size();
+    print!(
+        "Resulting mosaic will be a {}px x {}px image. Continue y/n? ",
+        mos_x, mos_y
+    );
+    let _ = stdout().flush();
+    stdin().read_line(&mut s).unwrap();
+
+    // ignore newlines
+    if let Some('\n') = s.chars().next_back() {
+        s.pop();
+    }
+    if let Some('\r') = s.chars().next_back() {
+        s.pop();
+    }
+
+    // we only care about the first character
+    let s = s.chars().next().unwrap();
+    if s == 'y' {
+        let mosaic = mosaic.to_image();
+
+        eprintln!(
+            "Saving image to {}...",
+            opt.output.clone().into_os_string().into_string().unwrap()
+        );
+        mosaic.save(opt.output).expect("Error saving mosaic.");
+    } else if s != 'n' {
+        // quit with warning
+        println!("Unrecognized input, expected 'y' or 'n'.");
+    }
+    // else, the input was 'n' so quit
 }
 
 /// Generates an image 'mosaic' using a set of image Tiles.
@@ -208,12 +236,18 @@ impl Mosaic {
         let (img_x, img_y) = img.dimensions();
         let (mos_x, mos_y) = (img_x * tile_size, img_y * tile_size);
         let inner = Inner(DynamicImage::new_rgb8(mos_x, mos_y));
-        eprintln!(
-            "Building mosaic with size ({}px, {}px) from tiles of side length {}px.",
-            mos_x, mos_y, tile_size
-        );
 
         Self { img, tiles, inner }
+    }
+
+    /// Get the size (in pixels) of the resulting mosaic based on the input image size,
+    /// scale factor, and tile size.
+    pub fn output_size(&self) -> (u32, u32) {
+        let (img_x, img_y) = self.img.dimensions();
+        let tile_size = self.tiles.tile_side_len();
+        let (mos_x, mos_y) = (img_x * tile_size, img_y * tile_size);
+
+        (mos_x, mos_y)
     }
 
     /// Generate the image mosaic and convert it to an [`RgbImage`].
