@@ -8,7 +8,7 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "Tilr",
-    author = "Charles German <5donuts@protonmail.com>",
+    author = "Charles German <5donuts@pm.me>",
     about = env!("CARGO_PKG_DESCRIPTION")
 )]
 struct Opt {
