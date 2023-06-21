@@ -8,6 +8,6 @@ Inspired by [tokotchd/PixelPicturePermutator](https://github.com/tokotchd/PixelP
 
 | Extension | Format | Supported? |
 | --------- | ------ | ---------- |
-| `.png` | Portable Network Graphics | [X] |
-| `.svg` | Scalable Vector Graphics | [ ] |
-| `.jpg`, `.jpeg`, etc. | Joint Photographic Experts Group | [X] |
+| `.png` | Portable Network Graphics | yes |
+| `.svg` | Scalable Vector Graphics | no |
+| `.jpg`, `.jpeg`, etc. | Joint Photographic Experts Group | yes |
