@@ -88,36 +88,31 @@ fn main() {
 
     // get user confirmation to proceed (so we don't start making hilariously huge images
     // w/o asking first).
-    let mut s = String::new();
     let (mos_x, mos_y) = mosaic.output_size();
-    print!(
-        "Resulting mosaic will be a {}px x {}px image. Continue y/n? ",
+    if user_confirm(&*format!(
+        "Resulting mosaic will be a {}px x {}px image. Continue y/N? ",
         mos_x, mos_y
-    );
+    )) {
+        let mosaic = mosaic.to_image();
+        eprint!("Saving image to {}...", &opt.output.display());
+        mosaic.save(opt.output).expect("Error saving mosaic.");
+        eprintln!("done.");
+    }
+}
+
+/// Get user confirmation for the given prompt
+fn user_confirm(prompt: &str) -> bool {
+    print!("{}", prompt);
     let _ = stdout().flush();
+
+    let mut s = String::new();
     stdin().read_line(&mut s).unwrap();
 
-    // ignore newlines
-    if let Some('\n') = s.chars().next_back() {
-        s.pop();
-    }
-    if let Some('\r') = s.chars().next_back() {
-        s.pop();
-    }
-
     // we only care about the first character
-    let s = s.chars().next().unwrap();
-    if s == 'y' {
-        let mosaic = mosaic.to_image();
-
-        eprintln!(
-            "Saving image to {}...",
-            opt.output.clone().into_os_string().into_string().unwrap()
-        );
-        mosaic.save(opt.output).expect("Error saving mosaic.");
-    } else if s != 'n' {
-        // quit with warning
-        println!("Unrecognized input, expected 'y' or 'n'.");
+    let s = s.to_lowercase().chars().next().unwrap();
+    if s != 'y' && s != 'n' {
+        eprintln!("Unrecognized input; expected 'y' or 'n'.");
     }
-    // else, the input was 'n' so quit
+
+    s == 'y'
 }
