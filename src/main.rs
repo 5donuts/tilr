@@ -35,8 +35,12 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "Tilr",
-    author = "Charles German <5donuts@pm.me>",
-    about = env!("CARGO_PKG_DESCRIPTION")
+    about = r#"A program to build a mosaic of an image from a set of smaller image 'tiles'
+
+Copyright (C) 2022 Charles German <5donuts@pm.me>
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
+See the GNU General Public License for more details. You should have received a copy of the
+GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>."#
 )]
 struct Opt {
     /// Path to the original image.
