@@ -26,6 +26,8 @@ use image::imageops::FilterType;
 use image::{DynamicImage, GenericImage, GenericImageView, Pixel, Rgb, RgbImage};
 use std::collections::HashMap;
 
+pub mod utils;
+
 /// Generates an image 'mosaic' using a set of image Tiles.
 ///
 /// An image 'mosaic' is an image made up of a number of smaller

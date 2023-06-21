@@ -18,7 +18,7 @@
 use image::io::Reader as ImageReader;
 use image::DynamicImage;
 use std::io::{stdin, stdout, Write};
-use std::{fs, path::PathBuf};
+use std::path::PathBuf;
 use structopt::StructOpt;
 
 use tilr::Mosaic;
@@ -72,40 +72,8 @@ fn main() {
     eprintln!("done.");
 
     // load the images to use as tiles
-    // TODO: replace these "unwrap"s
     eprint!("Loading tiles...");
-    let mut tiles = Vec::new();
-    fs::read_dir(opt.tile_dir)
-        .expect("Error opening tile dir.")
-        .for_each(|entry| {
-            if let Ok(e) = entry {
-                let path = e.path();
-                if !path.is_dir() {
-                    if let Ok(img) = ImageReader::open(&path) {
-                        if let Ok(img) = img.decode() {
-                            tiles.push(img);
-                        } else {
-                            eprintln!(
-                                "Unable to decode image {}",
-                                path.into_os_string().into_string().unwrap()
-                            );
-                        }
-                    } else {
-                        eprintln!(
-                            "Could not open file {}",
-                            path.into_os_string().into_string().unwrap()
-                        );
-                    }
-                } else {
-                    eprintln!(
-                        "Skipping directory entry {}",
-                        path.into_os_string().into_string().unwrap()
-                    );
-                }
-            } else {
-                eprintln!("Error reading dir entry {}", entry.unwrap_err().to_string());
-            }
-        });
+    let tiles = tilr::utils::load_tiles(&opt.tile_dir).expect("Error loading tiles");
     eprintln!("done.");
 
     // build the mosaic
