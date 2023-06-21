@@ -73,7 +73,7 @@ fn main() {
 
     // load the images to use as tiles
     eprint!("Loading tiles...");
-    let tiles = tilr::utils::load_tiles(&opt.tile_dir).expect("Error loading tiles");
+    let tiles = tilr::load_tiles(&opt.tile_dir).expect("Error loading tiles");
     eprintln!("done.");
 
     // build the mosaic

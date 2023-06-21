@@ -19,7 +19,7 @@ use std::error::Error;
 use std::fs;
 use std::path::Path;
 
-/// Load all images at the given `path` as [`Tile`s][crate::Tile]
+/// Load all images at the given `path` to use as tiles in the [`Mosaic`][crate::Mosaic]
 pub fn load_tiles(path: &Path) -> Result<Vec<DynamicImage>, Box<dyn Error>> {
     if !path.is_dir() {
         return Err(format!("Path must be a directory: {}", path.display()).into());
@@ -40,7 +40,7 @@ pub fn load_tiles(path: &Path) -> Result<Vec<DynamicImage>, Box<dyn Error>> {
     Ok(tiles)
 }
 
-/// Load a single [`Tile`][crate::Tile]
+/// Load a single image to use as a tile in the [`Mosaic`][crate::Mosaic]
 fn load(tile: &Path) -> Result<DynamicImage, Box<dyn Error>> {
     Ok(ImageReader::open(&tile)?.decode()?)
 }
