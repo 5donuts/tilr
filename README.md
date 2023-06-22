@@ -9,5 +9,10 @@ Inspired by [tokotchd/PixelPicturePermutator](https://github.com/tokotchd/PixelP
 | Extension | Format | Supported? |
 | --------- | ------ | ---------- |
 | `.png` | Portable Network Graphics | yes |
+| `.gif` | Graphics Interchange Format | yes |
+| `.tiff` | Tagged Image File Format | yes |
+| `.bmp` | Windows bitmap | yes |
 | `.svg` | Scalable Vector Graphics | no |
 | `.jpg`, `.jpeg`, etc. | Joint Photographic Experts Group | yes |
+| `.jp2`, `.jpx`, etc. | JPEG 2000 (JP2) | no |
+| `.jxl` | JPEG XL | no |
