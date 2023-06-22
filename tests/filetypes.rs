@@ -1,34 +1,22 @@
 //! Test Tilr reading/writing multiple popular image formats
 
-use std::sync::Once;
-
 mod utils;
 
-static SETUP: Once = Once::new();
+use std::error::Error;
+use utils::make_mosaic;
 
-// This function will only call `utils::setup()` once.
-fn setup() {
-    let mut res = Ok(());
-    SETUP.call_once(|| {
-        res = utils::setup();
-    });
-    res.unwrap();
+#[test]
+fn png() -> Result<(), Box<dyn Error>> {
+    make_mosaic("png")
 }
 
 #[test]
-fn png() {
-    setup();
-    todo!()
+fn jpeg() -> Result<(), Box<dyn Error>> {
+    make_mosaic("jpg")?;
+    make_mosaic("jpeg")
 }
 
 #[test]
-fn jpeg() {
-    setup();
-    todo!()
-}
-
-#[test]
-fn svg() {
-    setup();
-    todo!()
+fn svg() -> Result<(), Box<dyn Error>> {
+    make_mosaic("svg")
 }
