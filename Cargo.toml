@@ -6,10 +6,10 @@ authors = ["Charles German <5donuts@pm.me>"]
 edition = "2021"
 readme = "./README.md"
 license = "GPL-3.0-or-later"
-homepage = "https://github.com/5donuts/tilr"
+repository = "https://github.com/5donuts/tilr"
 categories = ["multimedia::images"]
 keywords = ["image-processing"]
-publish = false
+publish = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
