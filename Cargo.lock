@@ -626,7 +626,7 @@ dependencies = [
 
 [[package]]
 name = "tilr"
-version = "0.4.2"
+version = "0.4.4"
 dependencies = [
  "image",
  "structopt",
