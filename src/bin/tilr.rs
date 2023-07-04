@@ -15,75 +15,77 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use clap::Parser;
 use image::io::Reader as ImageReader;
 use image::DynamicImage;
 use std::io::{stdin, stdout, Write};
 use std::path::PathBuf;
-use structopt::StructOpt;
 
 use tilr::Mosaic;
 
 // Struct to describe our command-line arguments
 // and generate a parser for them.
-#[derive(Debug, StructOpt)]
-#[structopt(
-    name = "Tilr",
-    about = r#"A program to build a mosaic of an image from a set of smaller image 'tiles'
+#[derive(Debug, Parser)]
+#[clap(
+    author,
+    version,
+    about,
+    long_about = r#"A program to build a mosaic of an image from a set of smaller image 'tiles'
 
 Copyright (C) 2022 Charles German <5donuts@pm.me>
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
 See the GNU General Public License for more details. You should have received a copy of the
 GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>."#
 )]
-struct Opt {
+struct Args {
     /// Path to the original image.
-    #[structopt(name = "SRC_IMAGE", parse(from_os_str))]
-    pub image: PathBuf,
+    #[clap(value_parser)]
+    src_image: PathBuf,
 
     /// Path to the directory containing the tile set. Each image in this
     /// directory should be squares of the same size for optimal results.
-    #[structopt(short, long, default_value = "tiles/", parse(from_os_str))]
+    #[clap(short, long, default_value = "tiles/", value_parser)]
     tile_dir: PathBuf,
 
     /// Path at which to save the resulting image.
-    #[structopt(short, long, default_value = "mosaic.png", parse(from_os_str))]
+    #[clap(short, long, default_value = "mosaic.png", value_parser)]
     output: PathBuf,
 
     /// Scaling to apply to the image before building the mosaic.
-    #[structopt(short, long, default_value = "1.0")]
+    #[clap(short, long, default_value = "1.0")]
     scale: f32,
 
     /// The side length to use for the tiles (in pixels). Any tiles which
     /// are not squares with this side length will be resized; this may
     /// introduce some distortion in the resulting mosaic.
-    #[structopt(long, default_value = "8")]
+    #[clap(long, default_value = "8")]
     tile_size: u8,
 }
 
 fn main() {
-    // parse command-line args
-    let opt = Opt::from_args();
+    // fetch the CLI args
+    let args = Args::parse();
+    let src_image = args.src_image;
+    let tile_dir = args.tile_dir;
+    let scale = args.scale;
+    let tile_size = args.tile_size;
+    let output = args.output;
 
     // load the image to build a mosaic from
     eprint!("Loading input image...");
-    let img = ImageReader::open(opt.image).expect("Unable to read image file.");
+    let img = ImageReader::open(&src_image).expect("Unable to read image file.");
     let img = img.decode().expect("Unable to decode image file.");
     let img = img.into_rgb8(); // why does `.as_rgb8()` return `None` here?
     eprintln!("done.");
 
     // load the images to use as tiles
     eprint!("Loading tiles...");
-    let tiles = tilr::load_tiles(&opt.tile_dir).expect("Error loading tiles");
+    let tiles = tilr::load_tiles(&tile_dir).expect("Error loading tiles");
     eprintln!("done.");
 
     // build the mosaic
     eprint!("Initializing mosaic canvas...");
-    let mosaic = Mosaic::new(
-        DynamicImage::ImageRgb8(img),
-        &tiles,
-        opt.scale,
-        opt.tile_size,
-    );
+    let mosaic = Mosaic::new(DynamicImage::ImageRgb8(img), &tiles, scale, tile_size);
     eprintln!("done.");
 
     // get user confirmation to proceed (so we don't start making hilariously huge images
@@ -94,8 +96,8 @@ fn main() {
         mos_x, mos_y
     )) {
         let mosaic = mosaic.to_image();
-        eprint!("Saving image to {}...", &opt.output.display());
-        mosaic.save(opt.output).expect("Error saving mosaic.");
+        eprint!("Saving image to {}...", &output.display());
+        mosaic.save(output).expect("Error saving mosaic.");
         eprintln!("done.");
     }
 }
@@ -115,4 +117,15 @@ fn user_confirm(prompt: &str) -> bool {
     }
 
     s == 'y'
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn verify_app() {
+        use clap::IntoApp;
+        Args::into_app().debug_assert()
+    }
 }
