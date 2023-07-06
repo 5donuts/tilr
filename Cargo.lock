@@ -670,7 +670,7 @@ dependencies = [
 
 [[package]]
 name = "tilr"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
  "clap",
  "image",
