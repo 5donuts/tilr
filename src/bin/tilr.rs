@@ -32,7 +32,7 @@ use tilr::Mosaic;
     about,
     long_about = r#"A program to build a mosaic of an image from a set of smaller image 'tiles'
 
-Copyright (C) 2022 Charles German <5donuts@pm.me>
+Copyright (C) 2023 Charles German <5donuts@pm.me>
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
 See the GNU General Public License for more details. You should have received a copy of the
 GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>."#
