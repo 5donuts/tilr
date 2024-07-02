@@ -22,7 +22,20 @@
 
   outputs = { self, nixpkgs, ... }:
   let
+    system = "x86_64-linux";
+    pkgs = nixpkgs.legacyPackages.${system};
+
     rustOverrides = (builtins.fromTOML (builtins.readFile ./rust-toolchain.toml));
   in {
-  }
+    # For details, see: https://nixos.wiki/wiki/Rust#Installation_via_rustup
+    devShells.${system}.default = pkgs.mkShell {
+      buildInputs = with pkgs; [
+        clang
+        llvmPackages_latest.bintools
+        rustup
+      ];
+
+      RUSTC_VERSION = rustOverrides.toolchain.channel;
+    };
+  };
 }
