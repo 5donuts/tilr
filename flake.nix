@@ -22,12 +22,6 @@
 
   outputs = { self, nixpkgs, ... }:
   let
-    # For details on this approach to supporting multiple architectures, see:
-    # https://xeiaso.net/blog/nix-flakes-1-2022-02-21/
-    systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
-    forAllSystems = fn: nixpkgs.lib.genAttrs systems;
-    nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system }; });
-
     rustOverrides = (builtins.fromTOML (builtins.readFile ./rust-toolchain.toml));
   in {
   }
