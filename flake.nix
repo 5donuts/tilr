@@ -16,26 +16,32 @@
 {
   description = "Build an image from a set of image 'tiles'";
 
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-  };
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-  outputs = { self, nixpkgs, ... }:
+  outputs = { self, nixpkgs }:
   let
-    system = "x86_64-linux";
-    pkgs = nixpkgs.legacyPackages.${system};
+    # For details on this approach to supporting multiple architectures, see:
+    # https://xeiaso.net/blog/nix-flakes-1-2022-02-21/
+    systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
+    forAllSystems = nixpkgs.lib.genAttrs systems;
+    nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; } );
 
     rustOverrides = (builtins.fromTOML (builtins.readFile ./rust-toolchain.toml));
   in {
     # For details, see: https://nixos.wiki/wiki/Rust#Installation_via_rustup
-    devShells.${system}.default = pkgs.mkShell {
-      buildInputs = with pkgs; [
-        clang
-        llvmPackages_latest.bintools
-        rustup
-      ];
+    devShells = forAllSystems (system:
+      let
+        pkgs = nixpkgsFor.${system};
+      in {
+        default = pkgs.mkShell {
+          buildInputs = with pkgs; [
+            clang
+            llvmPackages_latest.bintools
+            rustup
+          ];
 
-      RUSTC_VERSION = rustOverrides.toolchain.channel;
-    };
+          RUSTC_VERSION = rustOverrides.toolchain.channel;
+        };
+      });
   };
 }
